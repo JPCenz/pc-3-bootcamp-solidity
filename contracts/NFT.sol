@@ -68,8 +68,8 @@ contract MiPrimerNft is
         _unpause();
     }
 
-    function safeMint(address to, uint256 id) public {
-        require(id < 31 && id >= 0, "Public Sale: id must be between 1 and 30");
+    function safeMint(address to, uint256 id) public onlyRole(MINTER_ROLE){
+        require(id < 31 && id > 0, "NFT: Token id out of range");
         require(!_exists(id), "Public Sale: Token has been already minted");
         // Se hacen dos validaciones
         // 1 - Dicho id no haya sido acuñado antes

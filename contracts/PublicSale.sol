@@ -112,7 +112,7 @@ contract PublicSale is
         // Enviar ether a Gnosis Safe
         // SUGERENCIA: Usar gnosisSafeWallet.call para enviar el ether
         // Validar los valores de retorno de 'call' para saber si se envio el ether correctamente
-
+        updateTokenMinted(nftId);
         // Dar el cambio al usuario
         // El vuelto seria equivalente a: msg.value - 0.01 ether
         if (msg.value > 0.01 ether) {
@@ -196,7 +196,8 @@ contract PublicSale is
             uint256 BASE = 10_000;
             uint256 MAX = 50_000;
 
-            uint256 hoursPassed = block.timestamp - startDate;
+            uint256 hoursPassed =(block.timestamp - startDate)/ 60 / 60;
+
             priceGroupThree = hoursPassed * 1000;
             if (priceGroupThree > MAX) {
                 return MAX * 10 ** decimals();
