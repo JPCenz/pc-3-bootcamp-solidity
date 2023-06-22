@@ -11,7 +11,7 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      title: "Interacting with smart contract",
+      title: "NFT Public Sale",
       template: "index.html",
     }),
   ],

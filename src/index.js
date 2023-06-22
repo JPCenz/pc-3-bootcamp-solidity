@@ -1,9 +1,7 @@
 import { BigNumber, Contract, providers, ethers, utils } from "ethers";
 import tokens from "./tokens.json";
-// import usdcTknAbi ...
-// import miPrimerTknAbi ...
-// import publicSaleAbi ...
-// import nftTknAbi ...
+import Swal from 'sweetalert2';
+
 const nftTknAbi = require("../artifacts/contracts/NFT.sol/MiPrimerNft.json").abi;
 const publicSaleAbi = require("../artifacts/contracts/PublicSale.sol/PublicSale.json").abi;
 const usdcTknAbi = require("../artifacts/contracts/USDCoin.sol/USDCoin.json").abi;
@@ -36,9 +34,17 @@ function initSCsGoerli() {
 // No require conexion con Metamask
 // Usar JSON-RPC
 // Se pueden escuchar eventos de los contratos usando el provider con RPC
-function initSCsMumbai() {
-  var nftAddress;
-  nftTknContract; // = new Contract...
+async function initSCsMumbai() {
+  console.log("Mumbai init")
+  const jsonRpcUrl = "https://polygon-mumbai.g.alchemy.com/v2/7zBylOHQgoTSW1TcSs5wJr0y3_xiHEBy";
+  const providerMumbai = new ethers.providers.JsonRpcProvider(jsonRpcUrl);
+  //const balance = await providerMumbai.getBalance("0xb1f6d2b76af9a8392205f1d1ce1e418ac3843533");
+  //console.log(ethers.utils.formatEther(balance));
+
+  const nftAddress = tokens.nftToken;
+  nftTknContract = new Contract(nftAddress, nftTknAbi, providerMumbai);
+  await setUpEventsContracts();
+
 }
 
 function setUpListeners() {
@@ -66,11 +72,14 @@ function setUpListeners() {
 
   usdcUpdatebtn.addEventListener("click", async () => {
     try {
-
       const response = await usdcTkContract
         .balanceOf(account)
-      console.log(response)
-      usdcBalance.innerHTML = response ?? "No tiene Balancee"
+      if (!isNaN(response)) {
+        usdcBalance.innerHTML = utils.formatEther(response) ?? "No tiene Balance"
+      } else {
+        usdcBalance.innerHTML = "No tiene Balance"
+      }
+      
     } catch (error) {
       console.log(error);
     }
@@ -80,31 +89,41 @@ function setUpListeners() {
     try {
       const res = await miPrTokenContract
         .balanceOf(account)
+      if (!isNaN(res)) {
+        miPrimerTknBalance.innerHTML = utils.formatEther(res) ?? "No tiene Balance"
+      } else {
+        miPrimerTknBalance.innerHTML = "No tiene Balance"
+      }
 
-      miPrimerTknBalance.innerHTML = res ?? "No tiene Balance"
 
     } catch (error) {
-
       console.log(error);
     }
   })
 
   approveButton.addEventListener("click", async () => {
     try {
-      console.log(approveInput.value)
+      if (isNaN(approveInput.value)) {
+        approveError.innerHTML = 'Invalid input: not a number';
+        console.error('Invalid input: not a number');
 
-      const amount = parseInt(approveInput.value, 10);
-      console.log(amount)
-      const tx = await miPrTokenContract
-        .connect(signer)
-        .approve(tokens.publicSale, BigNumber.from(amount).mul(BigNumber.from(10).pow(18)));
+      } else {
+        const amount = parseInt(approveInput.value, 10);
+        console.log(amount)
+        const tx = await miPrTokenContract
+          .connect(signer)
+          .approve(tokens.publicSale, BigNumber.from(amount).mul(BigNumber.from(10).pow(18)));
 
-      const response = await tx.wait()
-      console.log(response.transactionHash)
-      alert("Successully Approval", response.transactionHash)
-
+        const response = await tx.wait()
+        console.log(response.transactionHash)
+        Swal.fire({
+          title: 'Successully Approval!',
+          text: `txHASH: ${response.transactionHash}`,
+          icon: 'success',
+          confirmButtonText: 'Cool'
+        })
+      }
     } catch (error) {
-
       approveError.innerHTML = error.reason;
       console.log(error);
     }
@@ -126,7 +145,12 @@ function setUpListeners() {
 
         const response = await tx.wait()
         console.log(response.transactionHash)
-        alert(`Successully Purchase NFT : ${id} txHASH: ${response.transactionHash}`);
+        Swal.fire({
+          title: 'Successully Purchase NFT!',
+          text: `Congrats!NFT id : ${id} txHASH: ${response.transactionHash}`,
+          icon: 'success',
+          confirmButtonText: 'Cool'
+        })
       }
 
     } catch (error) {
@@ -159,7 +183,7 @@ function setUpListeners() {
     try {
       let op = {
         // Opciones de la transacción
-        to:tokens.publicSale,
+        to: tokens.publicSale,
         value: ethers.utils.parseEther('0.01'), // Enviar 1 ETH
       };
       const tx = await signer.sendTransaction(op)
@@ -180,27 +204,71 @@ function setUpListeners() {
 
 
 
-function setUpEventsContracts() {
+async function setUpEventsContracts() {
+  let nftListdiv = document.getElementById("nftList");
+  let nftEventdiv = document.getElementById("nftEvent")
+  //nftTknContract.on
+  const filter = nftTknContract.filters.Transfer(null, account, null);
+  const startBlock = 37000000
+  //Consulta los eventos pasados
+  const logs = await nftTknContract.queryFilter(filter, startBlock);
 
-  // nftTknContract.on
+  //Recorre los eventos e imprime los datos de cada evento
+  let listaTOkens = [];
+  logs.forEach((log) => {
+    // Parse the log with the contract's interface
+    const parsedLog = nftTknContract.interface.parseLog(log);
+    const to = parsedLog.args[1];
+    const nftID = parsedLog.args[2]
+    listaTOkens.push({
+      wallet: to,
+      nft: BigNumber.from(nftID).toString(),
+      tx: log.transactionHash
+    })
+    // Imprime los datos del evento
+    //console.log(to,BigNumber.from(nftID).toString());
+  })
+  listaTOkens.forEach((item) => {
+    nftListdiv.innerHTML += `<li> ID NFT: ${item.nft} ++ txHash : <a target=_blank href=https://mumbai.polygonscan.com/tx/${item.tx}>${item.tx}</a></li>`;
+  })
+
+
+  nftTknContract.on("Transfer", (from, to, nftID, event) => {
+    console.log(`Transaction hash: ${event.transactionHash}`);
+    nftEventdiv.innerHTML += '<h3>NUEVA COMPRA:</h3>'
+    nftEventdiv.innerHTML += `<p> ID NFT: ${nftID}</p>  txHash : <a target=_blank href=https://mumbai.polygonscan.com/tx/${event.transactionHash}>${event.transactionHash}</a>`;
+  });
+
 }
 
 async function setUp() {
+  await setUpProvider();
+  setUpMetamask();
   initSCsGoerli();
   initSCsMumbai();
   await setUpListeners();
-  setUpEventsContracts();
-  setUpMetamask();
+  //setUpEventsContracts();
+
 }
 
 function setUpMetamask() {
   let bttn = document.getElementById("connect");
   bttn.addEventListener("click", async function () {
     try {
+
       if (window.ethereum) {
+
         [account] = await ethereum.request({
           method: "eth_requestAccounts",
         });
+        if (!account.length == 0) {
+          Swal.fire({
+            title: 'Ya estas conectado!',
+            text: 'Do you want to continue',
+            icon: 'info',
+            confirmButtonText: 'Cool'
+          })
+        }
         console.log("Billetera metamask", account);
 
         provider = new providers.Web3Provider(window.ethereum);
@@ -213,6 +281,25 @@ function setUpMetamask() {
     }
 
   });
+}
+
+async function setUpProvider() {
+  try {
+    if (window.ethereum) {
+      [account] = await ethereum.request({
+        method: "eth_requestAccounts",
+      });
+      console.log("Billetera metamask", account);
+
+      provider = new providers.Web3Provider(window.ethereum);
+      signer = provider.getSigner(account);
+      window.signer = signer;
+    }
+
+  } catch (error) {
+    console.error(error.message)
+  }
+
 }
 
 setUp()
