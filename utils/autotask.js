@@ -27,7 +27,7 @@ exports.handler = async function (data) {
   var { winnerAccount, nftId } = event[0].params;
 
   // Ejecutar 'mint' en Mumbai del contrato MiPrimerToken
-  var miPrimerNFTAdd = "0xEfBcC3F9Faf598178b3720Eb4f8bAc669513b9e2";
+  var miPrimerNFTAdd = "0x4a7a4a5F0304C9a68Cd8D333d8D8d90Aaae2f642";
   var tokenAbi = ["function safeMint(address to, uint256 id)"];
   var tokenContract = new ethers.Contract(miPrimerNFTAdd, tokenAbi, signer);
   var tx = await tokenContract.safeMint(winnerAccount, nftId);

@@ -13,22 +13,7 @@ const {
 const MINTER_ROLE = getRole("MINTER_ROLE");
 const BURNER_ROLE = getRole("BURNER_ROLE");
 
-async function deployMumbai() {
 
-  const relayerAddress = "0x1B54CA30933Fab803541803842DC52Cf6A9Fc831"; //MODIFICAR POR EL ADDRES DEL RELAYER DEFENDER
-
-  const name = "Mi Primer NFT";
-  const symbol = "MPRNFT";
-  const nftContract = await deploySC("MiPrimerNft", [name, symbol]);
-  const implementation = await printAddress("NFT", nftContract.address);
-
-  // set up
-  console.log("Setup NFT Mumbai : grantROLE:");
-  await ex(nftContract, "grantRole", [MINTER_ROLE, relayerAddress], "GR");
-
-  console.log("Verificacion: ");
-  await verify(implementation, "MiPrimerNft", []);
-}
 
 async function deployUSDC() {
   let usdcContract = await deploySCNoUp("USDCoin", []);
@@ -67,11 +52,12 @@ async function deployGoerli() {
 
 }
 
-deployMumbai()
+
+deployGoerli()
   .catch((error) => {
     console.error(error);
     process.exitCode = 1;
   });
 
 
-// npx hardhat --network mumbai run scripts/deploy.js
+// npx hardhat --network goerli run scripts/deployGoerli.js
