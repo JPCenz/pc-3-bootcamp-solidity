@@ -75,7 +75,7 @@ function setUpListeners() {
       const response = await usdcTkContract
         .balanceOf(account)
       if (!isNaN(response)) {
-        usdcBalance.innerHTML = utils.formatEther(response) ?? "No tiene Balance"
+        usdcBalance.innerHTML = utils.formatUnits(BigNumber.from(response),6 ) ?? "No tiene Balance"
       } else {
         usdcBalance.innerHTML = "No tiene Balance"
       }
