@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity 0.8.9;
 
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlCrossChainUpgradeable.sol";
@@ -50,7 +50,7 @@ contract MiPrimerNft is
 
 
     function _baseURI() internal pure override returns (string memory) {
-        return "ipfs://QmVHVgf3ZSaiDtiLfTYMtyTQcp9CCoNm5uSZrekBUBSMBq/";
+        return "ipfs://QmY3SUnQVNpAvUckEzuf3rL6Pp5ceVjpm9W88upisEutyy/";
     }
 
     function tokenURI  (uint256 tokenId) public pure override returns(string memory) {

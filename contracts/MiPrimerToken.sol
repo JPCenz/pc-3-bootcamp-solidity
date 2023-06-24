@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity 0.8.9;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20BurnableUpgradeable.sol";
@@ -15,7 +15,7 @@ contract MiPrimerToken is
     UUPSUpgradeable
 {
     function initialize() public initializer {
-        __ERC20_init("MyPrimerToken", "MPRTKN");
+        __ERC20_init("My Primer Token", "MPRTKN");
         __ERC20Burnable_init();
         __Ownable_init();
         __UUPSUpgradeable_init();
